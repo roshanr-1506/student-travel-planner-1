@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wayfare — Trip Planning for Students</title>
+<meta name="description" content="Budget-smart, AI-assisted trip itineraries built for student travel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B1F3B;
+    --paper:#F6F1E7;
+    --paper-2:#EDE6D6;
+    --sunset:#FF6B4A;
+    --gold:#D9A441;
+    --sage:#5F7A5C;
+    --line: rgba(27,31,59,0.16);
+    --white:#FFFDF8;
+    --shadow: 0 18px 40px rgba(27,31,59,0.14);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+  .mono{font-family:'Space Mono',monospace;}
+  a{color:inherit;}
+  img{max-width:100%;display:block;}
+
+  /* texture */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image: radial-gradient(rgba(27,31,59,0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px; position:relative; z-index:1;}
+
+  /* ---------- NAV ---------- */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 28px; max-width:1180px; margin:0 auto; position:relative; z-index:5;
+  }
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo-mark{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--sunset);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--paper); font-family:'Fraunces',serif; font-weight:700; font-size:18px;
+    transform:rotate(-8deg);
+  }
+  .logo-text{font-family:'Fraunces',serif; font-weight:700; font-size:21px;}
+  nav .links{display:flex; gap:30px; font-size:14px; font-weight:500;}
+  nav .links a{text-decoration:none; opacity:0.75; transition:opacity .2s;}
+  nav .links a:hover{opacity:1;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    max-width:1180px; margin:0 auto; padding:40px 28px 10px;
+    display:grid; grid-template-columns:1.1fr 0.9fr; gap:50px; align-items:center;
+    position:relative; z-index:1;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Space Mono',monospace; font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--sunset); margin-bottom:18px;
+  }
+  .eyebrow::before{content:"✈"; font-size:13px;}
+  .hero h1{
+    font-size:clamp(40px,5.2vw,68px);
+    line-height:1.02;
+  }
+  .hero h1 em{font-style:italic; color:var(--sunset);}
+  .hero p.lead{
+    font-size:18px; line-height:1.6; color:rgba(27,31,59,0.75); max-width:46ch; margin-top:20px;
+  }
+  .hero-cta{display:flex; gap:14px; margin-top:30px; flex-wrap:wrap;}
+  .btn{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:15px;
+    padding:14px 26px; border-radius:999px; border:2px solid var(--ink);
+    cursor:pointer; transition:transform .15s ease, background .15s ease, color .15s ease;
+    text-decoration:none; display:inline-block;
+  }
+  .btn-solid{background:var(--ink); color:var(--paper);}
+  .btn-solid:hover{transform:translateY(-2px); background:var(--sunset); border-color:var(--sunset);}
+  .btn-ghost{background:transparent; color:var(--ink);}
+  .btn-ghost:hover{transform:translateY(-2px); background:var(--ink); color:var(--paper);}
+
+  .hero-stub{
+    background:var(--white);
+    border:1.5px solid var(--ink);
+    border-radius:18px;
+    padding:26px;
+    box-shadow:var(--shadow);
+    position:relative;
+    transform:rotate(2deg);
+  }
+  .hero-stub::after{
+    content:"";
+    position:absolute; left:-10px; top:50%; transform:translateY(-50%);
+    width:20px; height:20px; border-radius:50%; background:var(--paper); border:1.5px solid var(--ink);
+  }
+  .hero-stub::before{
+    content:"";
+    position:absolute; right:-10px; top:50%; transform:translateY(-50%);
+    width:20px; height:20px; border-radius:50%; background:var(--paper); border:1.5px solid var(--ink);
+  }
+  .stub-row{display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; opacity:0.6; margin-bottom:6px;}
+  .stub-route{display:flex; align-items:center; gap:14px; margin:10px 0 18px;}
+  .stub-city{font-family:'Fraunces',serif; font-size:26px; font-weight:600;}
+  .stub-arrow{flex:1; height:1px; background:repeating-linear-gradient(to right, var(--ink) 0 6px, transparent 6px 11px); position:relative;}
+  .stub-arrow::after{content:"✈"; position:absolute; right:-2px; top:-9px; font-size:14px;}
+  .stub-divider{border-top:1.5px dashed var(--line); margin:16px 0;}
+  .stub-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; font-family:'Space Mono',monospace; font-size:12px;}
+  .stub-grid b{display:block; font-family:'Fraunces',serif; font-size:17px; font-weight:600; margin-top:3px;}
+
+  /* ---------- PLANNER FORM ---------- */
+  section#plan{padding:90px 0 40px;}
+  .section-head{max-width:640px; margin-bottom:44px;}
+  .section-head .eyebrow{color:var(--sage);}
+  .section-head h2{font-size:clamp(28px,3.4vw,40px);}
+  .section-head p{color:rgba(27,31,59,0.7); font-size:16px; margin-top:12px; line-height:1.6;}
+
+  .planner-card{
+    background:var(--white); border:1.5px solid var(--ink); border-radius:22px;
+    padding:38px; box-shadow:var(--shadow);
+  }
+  .form-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:22px;}
+  .field{display:flex; flex-direction:column; gap:8px;}
+  .field.full{grid-column:1/-1;}
+  .field label{
+    font-family:'Space Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.65;
+  }
+  .field input, .field select{
+    font-family:'Inter',sans-serif; font-size:16px; padding:13px 14px;
+    border:1.5px solid var(--line); border-radius:10px; background:var(--paper);
+    color:var(--ink); outline:none; transition:border-color .15s ease;
+  }
+  .field input:focus, .field select:focus{border-color:var(--sunset);}
+  .chip-group{display:flex; flex-wrap:wrap; gap:10px;}
+  .chip{
+    font-size:13.5px; font-weight:500; padding:9px 16px; border-radius:999px;
+    border:1.5px solid var(--line); cursor:pointer; user-select:none; transition:all .15s ease;
+    background:var(--paper);
+  }
+  .chip.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .planner-footer{display:flex; align-items:center; justify-content:space-between; margin-top:28px; flex-wrap:wrap; gap:16px;}
+  .hint{font-size:13px; color:rgba(27,31,59,0.55);}
+  .submit-btn{
+    background:var(--sunset); color:var(--white); border:none; border-radius:999px;
+    padding:16px 34px; font-family:'Inter',sans-serif; font-weight:700; font-size:15.5px;
+    cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;
+    box-shadow:0 10px 24px rgba(255,107,74,0.35);
+  }
+  .submit-btn:hover{transform:translateY(-2px);}
+  .submit-btn:disabled{opacity:0.6; cursor:wait;}
+
+  /* ---------- RESULTS ---------- */
+  #results{display:none; padding:30px 0 90px;}
+  .results-top{display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:18px; margin-bottom:34px;}
+  .results-top h2{font-size:clamp(26px,3.2vw,36px);}
+  .results-meta{font-family:'Space Mono',monospace; font-size:13px; color:rgba(27,31,59,0.6); margin-top:8px;}
+
+  .budget-panel{
+    background:var(--ink); color:var(--paper); border-radius:22px; padding:32px; margin-bottom:36px;
+    display:grid; grid-template-columns:1fr 1.4fr; gap:34px; align-items:center;
+  }
+  .budget-total .label{font-family:'Space Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.6;}
+  .budget-total .num{font-family:'Fraunces',serif; font-size:46px; font-weight:600; margin-top:6px;}
+  .budget-total .sub{font-size:13px; opacity:0.65; margin-top:4px;}
+  .bars{display:flex; flex-direction:column; gap:12px;}
+  .bar-row{display:grid; grid-template-columns:90px 1fr 70px; align-items:center; gap:12px; font-size:13px;}
+  .bar-track{height:10px; background:rgba(246,241,231,0.15); border-radius:6px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:6px;}
+
+  .day-card{
+    background:var(--white); border:1.5px solid var(--ink); border-radius:18px;
+    margin-bottom:22px; overflow:hidden; box-shadow:var(--shadow);
+  }
+  .day-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 24px; border-bottom:1.5px dashed var(--line); background:var(--paper-2);
+  }
+  .day-head .day-num{font-family:'Space Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.6;}
+  .day-head h3{font-size:21px; margin-top:2px;}
+  .day-cost{font-family:'Space Mono',monospace; font-size:13px; background:var(--sage); color:var(--white); padding:6px 14px; border-radius:999px;}
+  .day-body{padding:22px 24px;}
+  .activity{
+    display:grid; grid-template-columns:64px 1fr; gap:16px; padding:14px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .activity:last-child{border-bottom:none; padding-bottom:0;}
+  .activity:first-child{padding-top:0;}
+  .activity .time{font-family:'Space Mono',monospace; font-size:12.5px; color:var(--sunset); font-weight:700; padding-top:2px;}
+  .activity .name{font-weight:600; font-size:15.5px;}
+  .activity .desc{font-size:14px; color:rgba(27,31,59,0.65); margin-top:3px; line-height:1.5;}
+  .activity .tag{display:inline-block; font-family:'Space Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em; background:var(--paper-2); padding:3px 9px; border-radius:6px; margin-top:6px;}
+
+  .extras-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:36px;}
+  .extra-card{background:var(--white); border:1.5px solid var(--ink); border-radius:18px; padding:26px; box-shadow:var(--shadow);}
+  .extra-card h3{font-size:19px; margin-bottom:14px;}
+  .extra-card ul{margin:0; padding-left:0; list-style:none;}
+  .extra-card li{font-size:14.5px; padding:8px 0; border-bottom:1px solid var(--line); display:flex; gap:10px;}
+  .extra-card li:last-child{border-bottom:none;}
+  .extra-card li::before{content:"—"; color:var(--sunset); flex-shrink:0;}
+
+  .results-actions{display:flex; gap:14px; margin-top:30px; flex-wrap:wrap;}
+
+  /* ---------- FOOTER ---------- */
+  footer{border-top:1.5px solid var(--line); padding:34px 0 50px; margin-top:60px;}
+  footer .wrap{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;}
+  footer p{font-size:13px; color:rgba(27,31,59,0.55);}
+
+  @media (max-width:880px){
+    .hero{grid-template-columns:1fr; gap:36px;}
+    .form-grid{grid-template-columns:1fr;}
+    .budget-panel{grid-template-columns:1fr;}
+    .extras-grid{grid-template-columns:1fr;}
+    nav .links{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+  .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);}
+  button:focus-visible, input:focus-visible, select:focus-visible, .chip:focus-visible, a:focus-visible{
+    outline:2.5px solid var(--sunset); outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-mark">W</div>
+    <div class="logo-text">Wayfare</div>
+  </div>
+  <div class="links">
+    <a href="#plan">Plan a trip</a>
+    <a href="#how">How it works</a>
+  </div>
+  <a href="#plan" class="btn btn-solid" style="padding:10px 20px; font-size:14px;">Start planning</a>
+</nav>
+
+<header class="hero">
+  <div>
+    <div class="eyebrow">Built for student budgets</div>
+    <h1>Trips that fit<br>your <em>budget</em>,<br>not the brochure.</h1>
+    <p class="lead">Tell Wayfare your destination, your days, and what's actually in your wallet. We build a day-by-day itinerary with real cost splits — no generic "top 10 things to do" lists.</p>
+    <div class="hero-cta">
+      <a href="#plan" class="btn btn-solid">Plan my trip — free</a>
+      <a href="#how" class="btn btn-ghost">How it works</a>
+    </div>
+  </div>
+  <div class="hero-stub">
+    <div class="stub-row"><span>Boarding · Wayfare</span><span>Seat 14A</span></div>
+    <div class="stub-route">
+      <span class="stub-city">HOME</span>
+      <span class="stub-arrow"></span>
+      <span class="stub-city">GOA</span>
+    </div>
+    <div class="stub-divider"></div>
+    <div class="stub-grid">
+      <div>Trip length<b>5 days</b></div>
+      <div>Budget<b>₹12,000</b></div>
+      <div>Travelers<b>2 students</b></div>
+      <div>Vibe<b>Beaches + food</b></div>
+    </div>
+  </div>
+</header>
+
+<main>
+<section id="plan" class="wrap">
+  <div class="section-head">
+    <div class="eyebrow">Step one</div>
+    <h2>Set the basics.</h2>
+    <p>This runs entirely in your browser — fill in the form and your itinerary builds instantly below.</p>
+  </div>
+
+  <form class="planner-card" id="plannerForm" novalidate>
+    <div class="form-grid">
+      <div class="field">
+        <label for="destination">Destination</label>
+        <input type="text" id="destination" placeholder="e.g. Goa, Manali, Jaipur, Bangkok…">
+      </div>
+      <div class="field">
+        <label for="origin">Traveling from</label>
+        <input type="text" id="origin" placeholder="e.g. Delhi">
+      </div>
+      <div class="field">
+        <label for="days">Trip length (days)</label>
+        <input type="number" id="days" min="1" max="14" value="4">
+      </div>
+      <div class="field">
+        <label for="travelers">Number of travelers</label>
+        <input type="number" id="travelers" min="1" max="10" value="2">
+      </div>
+      <div class="field">
+        <label for="budget">Total budget (₹, all travelers combined)</label>
+        <input type="number" id="budget" min="500" step="500" placeholder="e.g. 12000">
+      </div>
+      <div class="field">
+        <label for="pace">Pace</label>
+        <select id="pace">
+          <option value="relaxed">Relaxed — fewer stops, more downtime</option>
+          <option value="balanced" selected>Balanced</option>
+          <option value="packed">Packed — see as much as possible</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>Interests (pick a few)</label>
+        <div class="chip-group" id="interestChips">
+          <div class="chip" data-val="nature">Nature & scenery</div>
+          <div class="chip" data-val="food">Street food</div>
+          <div class="chip" data-val="culture">Culture & history</div>
+          <div class="chip" data-val="nightlife">Nightlife</div>
+          <div class="chip" data-val="adventure">Adventure sports</div>
+          <div class="chip" data-val="shopping">Shopping & markets</div>
+          <div class="chip" data-val="chill">Chill & cafes</div>
+          <div class="chip" data-val="photo">Photo spots</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="planner-footer">
+      <span class="hint">No sign-up. No data leaves your browser.</span>
+      <button type="submit" class="submit-btn" id="submitBtn">Generate my itinerary →</button>
+    </div>
+  </form>
+</section>
+
+<section id="results" class="wrap" aria-live="polite"></section>
+
+<section id="how" class="wrap" style="padding:30px 0 80px;">
+  <div class="section-head">
+    <div class="eyebrow">How it works</div>
+    <h2>Three honest steps.</h2>
+  </div>
+  <div class="extras-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="extra-card">
+      <h3>1. You set the limits</h3>
+      <p style="font-size:14.5px; color:rgba(27,31,59,0.7); line-height:1.6;">Destination, days, travelers, and the actual rupee amount you have — not a "low/medium/high" dropdown.</p>
+    </div>
+    <div class="extra-card">
+      <h3>2. We split the budget</h3>
+      <p style="font-size:14.5px; color:rgba(27,31,59,0.7); line-height:1.6;">Stay, food, transport, and activities get realistic shares based on your destination's typical student prices.</p>
+    </div>
+    <div class="extra-card">
+      <h3>3. You get a day-by-day plan</h3>
+      <p style="font-size:14.5px; color:rgba(27,31,59,0.7); line-height:1.6;">Morning-to-night activities matched to your interests, plus a packing list and money-saving tips — ready to follow or tweak.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="logo">
+      <div class="logo-mark" style="width:26px;height:26px;font-size:14px;">W</div>
+      <div class="logo-text" style="font-size:16px;">Wayfare</div>
+    </div>
+    <p>Built for students who'd rather spend money on the trip than the planning.</p>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   WAYFARE — client-side itinerary engine
+   No external API calls. Deterministic, budget-aware generator.
+   ============================================================ */
+
+const DESTINATIONS = {
+  goa: {
+    label: "Goa", region: "Beach & coast",
+    dailyBudgetLow: 1200, dailyBudgetHigh: 3500,
+    stayOptions: [
+      {name:"Hostel dorm bed in Anjuna/Baga", cost:450, tag:"budget stay"},
+      {name:"Shared guesthouse room", cost:900, tag:"mid stay"},
+      {name:"Beach-facing cottage", cost:1800, tag:"upgrade stay"}
+    ],
+    food: [
+      {name:"Beach shack thali", cost:150, tag:"food"},
+      {name:"Goan fish curry & rice", cost:220, tag:"food"},
+      {name:"Street-side sandwich & juice", cost:90, tag:"food"}
+    ],
+    transport: [
+      {name:"Rent a scooter for the day", cost:350, tag:"transport"},
+      {name:"Shared pilot taxi hop", cost:80, tag:"transport"}
+    ],
+    activities: {
+      nature: [{name:"Sunset at Vagator cliffs", desc:"Walk up to the laterite cliffs above Vagator beach for golden-hour views.", cost:0}],
+      food: [{name:"Mapusa market food crawl", desc:"Wander the local market for fresh produce, snacks, and feni tastings.", cost:200}],
+      culture: [{name:"Old Goa churches walk", desc:"Basilica of Bom Jesus and Se Cathedral, both UNESCO sites.", cost:50}],
+      nightlife: [{name:"Tito's Lane / Anjuna night market", desc:"Live music, stalls, and the famous Wednesday flea market (if timing allows).", cost:300}],
+      adventure: [{name:"Parasailing at Baga", desc:"15-minute tandem parasail over the bay.", cost:1200}],
+      shopping: [{name:"Anjuna flea market browsing", desc:"Textiles, jewellery, and souvenirs — bargain hard.", cost:300}],
+      chill: [{name:"Cafe hop in Assagao", desc:"Slow morning at one of Assagao's leafy cafes.", cost:250}],
+      photo: [{name:"Chapora Fort at sunset", desc:"The 'Dil Chahta Hai' fort with panoramic coastline views.", cost:0}]
+    }
+  },
+  manali: {
+    label: "Manali", region: "Mountains",
+    dailyBudgetLow: 1000, dailyBudgetHigh: 3000,
+    stayOptions: [
+      {name:"Hostel dorm in Old Manali", cost:400, tag:"budget stay"},
+      {name:"Guesthouse with mountain view", cost:850, tag:"mid stay"},
+      {name:"Riverside cottage", cost:1700, tag:"upgrade stay"}
+    ],
+    food: [
+      {name:"Himachali thali", cost:180, tag:"food"},
+      {name:"Israeli cafe shakshuka", cost:220, tag:"food"},
+      {name:"Momos & thukpa", cost:120, tag:"food"}
+    ],
+    transport: [
+      {name:"Rent a bike for the day", cost:700, tag:"transport"},
+      {name:"Shared taxi to Solang/Old Manali", cost:150, tag:"transport"}
+    ],
+    activities: {
+      nature: [{name:"Walk through Old Manali orchards", desc:"Wander apple orchards along the Manalsu stream.", cost:0}],
+      food: [{name:"Old Manali cafe trail", desc:"Hop between cafes known for wood-fired pizza and local trout.", cost:250}],
+      culture: [{name:"Hadimba Temple visit", desc:"Ancient wooden temple set inside a cedar forest.", cost:0}],
+      nightlife: [{name:"Bonfire night at a hostel", desc:"Most hostels run a communal bonfire with music after dark.", cost:0}],
+      adventure: [{name:"Paragliding at Solang Valley", desc:"Tandem flight over the valley with mountain backdrops.", cost:2200}],
+      shopping: [{name:"Tibetan Market browsing", desc:"Woollens, prayer flags, and handicrafts.", cost:300}],
+      chill: [{name:"Riverside reading session", desc:"Find a quiet ledge along the Beas river.", cost:0}],
+      photo: [{name:"Jogini Waterfall hike", desc:"A moderate hike to a scenic waterfall above Vashisht.", cost:0}]
+    }
+  },
+  jaipur: {
+    label: "Jaipur", region: "Heritage city",
+    dailyBudgetLow: 900, dailyBudgetHigh: 2800,
+    stayOptions: [
+      {name:"Hostel dorm near Hawa Mahal", cost:400, tag:"budget stay"},
+      {name:"Heritage guesthouse room", cost:900, tag:"mid stay"},
+      {name:"Boutique haveli stay", cost:1900, tag:"upgrade stay"}
+    ],
+    food: [
+      {name:"Dal baati churma thali", cost:160, tag:"food"},
+      {name:"Lassiwala kulhad lassi", cost:60, tag:"food"},
+      {name:"Street kachori & chai", cost:80, tag:"food"}
+    ],
+    transport: [
+      {name:"Auto-rickshaw day pass", cost:400, tag:"transport"},
+      {name:"Rent a scooter", cost:350, tag:"transport"}
+    ],
+    activities: {
+      nature: [{name:"Nahargarh Fort sunset", desc:"Panoramic views over the pink city from the ridge.", cost:200}],
+      food: [{name:"Chandpole street food trail", desc:"Pyaaz kachori, ghewar, and more in the old city.", cost:200}],
+      culture: [{name:"Amber Fort & City Palace", desc:"Two of Jaipur's most iconic Rajput-era monuments.", cost:550}],
+      nightlife: [{name:"Rooftop dinner with fort views", desc:"Several old-city rooftops overlook lit-up forts at night.", cost:400}],
+      adventure: [{name:"Hot air balloon ride", desc:"Sunrise balloon flight over the Aravalli foothills.", cost:9500}],
+      shopping: [{name:"Johari Bazaar browsing", desc:"Jewellery, block-print textiles, and lac bangles.", cost:300}],
+      chill: [{name:"Cafe at Bapu Bazaar", desc:"People-watch with a chai near the old city gates.", cost:120}],
+      photo: [{name:"Hawa Mahal at golden hour", desc:"Best light hits the honeycomb facade just after sunrise.", cost:50}]
+    }
+  },
+  rishikesh: {
+    label: "Rishikesh", region: "Riverside & adventure",
+    dailyBudgetLow: 900, dailyBudgetHigh: 2700,
+    stayOptions: [
+      {name:"Hostel dorm near Laxman Jhula", cost:400, tag:"budget stay"},
+      {name:"Riverside guesthouse", cost:800, tag:"mid stay"},
+      {name:"Ganga-view cottage", cost:1600, tag:"upgrade stay"}
+    ],
+    food: [
+      {name:"Pure-veg ashram thali", cost:120, tag:"food"},
+      {name:"German Bakery breakfast", cost:200, tag:"food"},
+      {name:"Street chaat by the ghats", cost:80, tag:"food"}
+    ],
+    transport: [
+      {name:"Rent a bike", cost:500, tag:"transport"},
+      {name:"Shared auto along the ghats", cost:60, tag:"transport"}
+    ],
+    activities: {
+      nature: [{name:"Walk across Ram Jhula at sunrise", desc:"Quiet riverside views before the crowds arrive.", cost:0}],
+      food: [{name:"Cafe-hop along Tapovan", desc:"Health-food cafes overlooking the Ganga.", cost:250}],
+      culture: [{name:"Triveni Ghat evening aarti", desc:"Daily fire ritual on the riverbank, open to all.", cost:0}],
+      nightlife: [{name:"Live acoustic night at a cafe", desc:"Several riverside cafes host informal music evenings.", cost:150}],
+      adventure: [{name:"Grade III white-water rafting", desc:"16km rafting stretch from Shivpuri to Rishikesh.", cost:600}],
+      shopping: [{name:"Tibetan market browsing", desc:"Beads, singing bowls, and prayer flags.", cost:200}],
+      chill: [{name:"Riverside yoga session", desc:"Drop-in yoga classes run along the ghats most mornings.", cost:200}],
+      photo: [{name:"Laxman Jhula bridge views", desc:"Iconic suspension bridge over the Ganga.", cost:0}]
+    }
+  },
+  pondicherry: {
+    label: "Pondicherry", region: "French quarter & coast",
+    dailyBudgetLow: 1000, dailyBudgetHigh: 3000,
+    stayOptions: [
+      {name:"Hostel dorm in White Town", cost:450, tag:"budget stay"},
+      {name:"Guesthouse in Tamil quarter", cost:850, tag:"mid stay"},
+      {name:"Colonial-style heritage room", cost:1900, tag:"upgrade stay"}
+    ],
+    food: [
+      {name:"French-Tamil fusion meal", cost:250, tag:"food"},
+      {name:"Filter coffee & bun", cost:60, tag:"food"},
+      {name:"Beachside seafood plate", cost:280, tag:"food"}
+    ],
+    transport: [
+      {name:"Rent a bicycle", cost:150, tag:"transport"},
+      {name:"Rent a scooter", cost:350, tag:"transport"}
+    ],
+    activities: {
+      nature: [{name:"Promenade beach walk at sunrise", desc:"Car-free stretch along the Bay of Bengal.", cost:0}],
+      food: [{name:"White Town cafe crawl", desc:"French bakeries and fusion cafes in the old quarter.", cost:300}],
+      culture: [{name:"French Quarter architecture walk", desc:"Mustard-yellow colonial buildings and quiet lanes.", cost:0}],
+      nightlife: [{name:"Live music at a beachside bar", desc:"A handful of bars run acoustic sets in the evenings.", cost:300}],
+      adventure: [{name:"Scuba diving taster session", desc:"Beginner dive session run from Temple Adventures.", cost:3500}],
+      shopping: [{name:"Auroville handicrafts browsing", desc:"Sustainable crafts and incense from the Auroville collective.", cost:300}],
+      chill: [{name:"Auroville visit & meditation", desc:"Visit the Matrimandir grounds for quiet reflection.", cost:0}],
+      photo: [{name:"Rue Romain Rolland street photos", desc:"Bougainvillea-covered colonial facades.", cost:0}]
+    }
+  },
+  default: {
+    label: null, region: "General",
+    dailyBudgetLow: 1000, dailyBudgetHigh: 3000,
+    stayOptions: [
+      {name:"Hostel dorm bed", cost:450, tag:"budget stay"},
+      {name:"Budget guesthouse room", cost:900, tag:"mid stay"},
+      {name:"Comfort hotel room", cost:1800, tag:"upgrade stay"}
+    ],
+    food: [
+      {name:"Local thali / set meal", cost:180, tag:"food"},
+      {name:"Street food trail", cost:120, tag:"food"},
+      {name:"Sit-down cafe meal", cost:250, tag:"food"}
+    ],
+    transport: [
+      {name:"Local public transport day pass", cost:150, tag:"transport"},
+      {name:"Shared cab / rickshaw", cost:300, tag:"transport"}
+    ],
+    activities: {
+      nature: [{name:"Explore a nearby park or viewpoint", desc:"Free or low-cost green space to start the day slow.", cost:0}],
+      food: [{name:"Local market food trail", desc:"Sample regional snacks at the central market.", cost:200}],
+      culture: [{name:"Old town / heritage walk", desc:"Self-guided walk through the historic core.", cost:100}],
+      nightlife: [{name:"Evening market or night street", desc:"Most towns have a lively after-dark stretch worth a wander.", cost:200}],
+      adventure: [{name:"Local adventure activity", desc:"Check for a regional activity — trekking, water sports, or biking.", cost:1000}],
+      shopping: [{name:"Local bazaar browsing", desc:"Handicrafts, textiles, or souvenirs unique to the region.", cost:250}],
+      chill: [{name:"Cafe & journaling break", desc:"Slow down with a coffee somewhere central.", cost:150}],
+      photo: [{name:"Golden-hour landmark visit", desc:"Time a visit to the area's best-known sight for soft light.", cost:50}]
+    }
+  }
+};
+
+const TIME_SLOTS = ["7:30 AM","9:30 AM","12:30 PM","3:30 PM","6:30 PM","9:00 PM"];
+
+function findDestination(name){
+  const key = name.trim().toLowerCase();
+  for(const k in DESTINATIONS){
+    if(k==="default") continue;
+    if(key.includes(k)) return {data: DESTINATIONS[k], matched:true};
+  }
+  return {data: DESTINATIONS.default, matched:false};
+}
+
+function inr(n){
+  return "₹" + Math.round(n).toLocaleString("en-IN");
+}
+
+function pick(arr, seed){
+  return arr[seed % arr.length];
+}
+
+// simple deterministic pseudo-random so re-runs with same inputs feel stable but varied across days
+function seededShuffle(arr, seed){
+  const a = arr.slice();
+  let s = seed;
+  for(let i=a.length-1;i>0;i--){
+    s = (s*9301+49297)%233280;
+    const j = Math.floor((s/233280)*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+document.querySelectorAll("#interestChips .chip").forEach(chip=>{
+  chip.addEventListener("click",()=>chip.classList.toggle("active"));
+});
+
+const submitBtn = document.getElementById("submitBtn");
+const plannerForm = document.getElementById("plannerForm");
+
+function showFormError(msg){
+  let err = document.getElementById("formError");
+  if(!err){
+    err = document.createElement("div");
+    err.id = "formError";
+    err.style.cssText = "grid-column:1/-1; background:#FFE8E2; border:1.5px solid var(--sunset); color:#8a2e1a; padding:12px 16px; border-radius:10px; font-size:14px; font-weight:600;";
+    document.querySelector(".form-grid").prepend(err);
+  }
+  err.textContent = msg;
+}
+function clearFormError(){
+  const err = document.getElementById("formError");
+  if(err) err.remove();
+}
+
+// Make absolutely sure clicks reach the handler even if something else on the
+// page intercepts the native submit event.
+submitBtn.addEventListener("click", function(e){
+  e.preventDefault();
+  handleGenerate();
+});
+plannerForm.addEventListener("submit", function(e){
+  e.preventDefault();
+  handleGenerate();
+});
+
+function handleGenerate(){
+  clearFormError();
+
+  // Gentle validation with visible feedback instead of silent failure
+  if(!document.getElementById("budget").value){
+    showFormError("Add a total budget so we can build cost-aware suggestions.");
+    document.getElementById("budget").focus();
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Building your trip…";
+
+  setTimeout(()=>{
+    try{
+      buildItinerary();
+    } catch(err){
+      console.error("Wayfare itinerary error:", err);
+      showFormError("Something went wrong building your itinerary: " + err.message);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Generate my itinerary →";
+    }
+  }, 400);
+}
+
+function buildItinerary(){
+  const destinationInput = document.getElementById("destination").value || "your destination";
+  const origin = document.getElementById("origin").value || "your city";
+  const days = Math.max(1, Math.min(14, parseInt(document.getElementById("days").value) || 4));
+  const travelers = Math.max(1, Math.min(10, parseInt(document.getElementById("travelers").value) || 1));
+  const totalBudget = Math.max(500, parseInt(document.getElementById("budget").value) || 5000);
+  const pace = document.getElementById("pace").value;
+  const interests = Array.from(document.querySelectorAll("#interestChips .chip.active")).map(c=>c.dataset.val);
+  const activeInterests = interests.length ? interests : ["nature","food","culture","chill"];
+
+  const {data: dest} = findDestination(destinationInput);
+  const cityLabel = dest.label || destinationInput.trim().replace(/\b\w/g, c=>c.toUpperCase());
+
+  // ---- Budget split ----
+  // Rough realistic student splits, then scaled to total budget across all travelers
+  const splitPct = { stay: 0.34, food: 0.27, transport: 0.16, activities: 0.18, buffer: 0.05 };
+  const allocation = {};
+  Object.keys(splitPct).forEach(k => allocation[k] = totalBudget * splitPct[k]);
+  const perDayPerPerson = totalBudget / days / travelers;
+
+  // pick a stay tier that roughly fits the per-traveler nightly allocation
+  const nightlyStayBudgetPerPerson = allocation.stay / days / travelers;
+  let stayChoice = dest.stayOptions[0];
+  for(const opt of dest.stayOptions){
+    if(opt.cost <= nightlyStayBudgetPerPerson) stayChoice = opt;
+  }
+
+  const activitiesPerDay = pace === "relaxed" ? 3 : pace === "packed" ? 5 : 4;
+
+  // ---- Build day cards ----
+  let daysHtml = "";
+  const interestPool = activeInterests.length ? activeInterests : Object.keys(dest.activities);
+
+  for(let d=1; d<=days; d++){
+    const dayInterests = seededShuffle(interestPool, d*7+3);
+    const chosenActivities = [];
+    let i = 0;
+    while(chosenActivities.length < activitiesPerDay && i < dayInterests.length*3){
+      const interestKey = dayInterests[i % dayInterests.length];
+      const options = dest.activities[interestKey] || dest.activities.chill;
+      const act = pick(options, d + i);
+      if(!chosenActivities.find(a=>a.name===act.name)){
+        chosenActivities.push(Object.assign({interest:interestKey}, act));
+      }
+      i++;
+    }
+    // always slot one meal + one transport-ish item naturally into food/transport choices
+    const meal = pick(dest.food, d);
+    const transport = pick(dest.transport, d+1);
+
+    const slotItems = chosenActivities.slice(0, TIME_SLOTS.length);
+    let dayCost = stayChoice.cost + meal.cost*2 + transport.cost;
+    let activityHtml = "";
+    slotItems.forEach((act, idx)=>{
+      dayCost += act.cost || 0;
+      activityHtml += `
+        <div class="activity">
+          <div class="time">${TIME_SLOTS[idx % TIME_SLOTS.length]}</div>
+          <div>
+            <div class="name">${act.name}</div>
+            <div class="desc">${act.desc || ""}</div>
+            <span class="tag">${act.cost ? inr(act.cost) + " est." : "free"} · ${act.interest}</span>
+          </div>
+        </div>`;
+    });
+
+    activityHtml += `
+      <div class="activity">
+        <div class="time">Meals</div>
+        <div>
+          <div class="name">${meal.name}</div>
+          <div class="desc">Budget around twice this for two meals across the day.</div>
+          <span class="tag">${inr(meal.cost)} per meal, per person</span>
+        </div>
+      </div>
+      <div class="activity">
+        <div class="time">Getting around</div>
+        <div>
+          <div class="name">${transport.name}</div>
+          <div class="desc">Split this cost with your travel group where possible.</div>
+          <span class="tag">${inr(transport.cost)} est.</span>
+        </div>
+      </div>`;
+
+    daysHtml += `
+      <div class="day-card">
+        <div class="day-head">
+          <div>
+            <div class="day-num">Day ${d} of ${days}</div>
+            <h3>${d===1 ? "Arrival & first impressions" : d===days ? "Last looks & departure" : "Exploring " + cityLabel}</h3>
+          </div>
+          <div class="day-cost">~${inr(dayCost*travelers)} for ${travelers===1?"you":travelers+" of you"}</div>
+        </div>
+        <div class="day-body">${activityHtml}</div>
+      </div>`;
+  }
+
+  // ---- Budget bars ----
+  const barColors = {stay:"#FF6B4A", food:"#D9A441", transport:"#7BA0D6", activities:"#5F7A5C", buffer:"#C9C2AE"};
+  const barLabels = {stay:"Stay", food:"Food", transport:"Transport", activities:"Activities", buffer:"Buffer"};
+  let barsHtml = "";
+  Object.keys(splitPct).forEach(k=>{
+    const pct = Math.round(splitPct[k]*100);
+    barsHtml += `
+      <div class="bar-row">
+        <span>${barLabels[k]}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${barColors[k]};"></div></div>
+        <span class="mono">${inr(allocation[k])}</span>
+      </div>`;
+  });
+
+  // ---- Packing list (interest aware) ----
+  const packingBase = ["Reusable water bottle","Power bank & charging cable","Copy of student ID / travel ID","Basic first-aid + any personal meds"];
+  const packingByInterest = {
+    nature: ["Light rain jacket","Comfortable walking shoes"],
+    adventure: ["Quick-dry clothing","Extra change of clothes"],
+    nightlife: ["One smart-casual outfit"],
+    culture: ["Modest clothing for temples/heritage sites"],
+    photo: ["Spare memory card / phone storage"],
+    chill: ["A good book or journal"],
+    food: ["Antacid / digestion tablets, just in case"],
+    shopping: ["A foldable extra bag for purchases"]
+  };
+  const packing = new Set(packingBase);
+  activeInterests.forEach(k=>(packingByInterest[k]||[]).forEach(p=>packing.add(p)));
+
+  // ---- Money-saving tips ----
+  const tips = [
+    `Book ${stayChoice.tag.replace(" stay","")} stays directly through hostel sites or call ahead — you'll often beat the listed OTA price.`,
+    "Travel in a group and split cabs/scooters rather than booking solo rides.",
+    "Eat where locals queue, not where the menu has photos — it's usually cheaper and better.",
+    "Carry a copy of your student ID; many sights and transport options offer student discounts.",
+    days >= 4 ? "Buy a multi-day local transport pass if your destination offers one." : "For a short trip, a day-rental scooter or bicycle is usually cheaper than repeated cab rides."
+  ];
+
+  const totalEstimate = Object.values(allocation).reduce((a,b)=>a+b,0);
+
+  const resultsHtml = `
+    <div class="results-top">
+      <div>
+        <h2>${origin.trim() || "Home"} → ${cityLabel}</h2>
+        <div class="results-meta">${days} days · ${travelers} traveler${travelers>1?"s":""} · ${pace} pace · ${dest.region}</div>
+      </div>
+    </div>
+
+    <div class="budget-panel">
+      <div class="budget-total">
+        <div class="label">Total trip budget</div>
+        <div class="num">${inr(totalBudget)}</div>
+        <div class="sub">≈ ${inr(perDayPerPerson)} per person, per day</div>
+      </div>
+      <div class="bars">${barsHtml}</div>
+    </div>
+
+    <div id="dayCards">${daysHtml}</div>
+
+    <div class="extras-grid">
+      <div class="extra-card">
+        <h3>Suggested stay</h3>
+        <ul>
+          <li>${stayChoice.name} — ${inr(stayChoice.cost)} / night / person</li>
+          <li>Picked to fit your stay budget of ~${inr(nightlyStayBudgetPerPerson)} per person, per night</li>
+          <li>Book flexible-cancellation where possible — plans change</li>
+        </ul>
+      </div>
+      <div class="extra-card">
+        <h3>Packing checklist</h3>
+        <ul>
+          ${Array.from(packing).map(p=>`<li>${p}</li>`).join("")}
+        </ul>
+      </div>
+      <div class="extra-card">
+        <h3>Money-saving tips</h3>
+        <ul>${tips.map(t=>`<li>${t}</li>`).join("")}</ul>
+      </div>
+      <div class="extra-card">
+        <h3>Quick reality check</h3>
+        <ul>
+          <li>This plan assumes prices typical for student travel — actual costs vary by season</li>
+          <li>Estimated total across the trip: ${inr(totalEstimate)}</li>
+          <li>Re-run with a different budget or interests any time — it's instant</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="results-actions">
+      <button class="btn btn-solid" onclick="window.print()">Print / save as PDF</button>
+      <a href="#plan" class="btn btn-ghost">Adjust my inputs</a>
+    </div>
+  `;
+
+  const results = document.getElementById("results");
+  results.innerHTML = resultsHtml;
+  results.style.display = "block";
+  results.scrollIntoView({behavior:"smooth", block:"start"});
+}
+</script>
+</body>
+</html>
